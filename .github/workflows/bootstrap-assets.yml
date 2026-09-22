@@ -1,4 +1,4 @@
-name: Bootstrap Denner assets
+name: Bootstrap Denner site
 
 on:
   push:
@@ -13,64 +13,146 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Download original captured assets
+
+      - name: Mirror the original site
         shell: bash
         run: |
           set -euo pipefail
-          fetch() {
-            url="$1"
-            out="$2"
-            mkdir -p "$(dirname "$out")"
-            curl -fL --retry 3 --connect-timeout 20 "$url" -o "$out"
+          python3 <<'PY'
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+          from urllib.parse import urlsplit
+          import re
+          import time
+
+          ROOT = Path(".")
+          ORIGIN = "https://jasminadenner.com"
+          CMS = "https://jd-cms.onrender.com"
+          routes = [
+              "",
+              "longevity-intelligence/",
+              "book/",
+              "lab/",
+              "about/",
+              "ventures/",
+              "the-intelligence-report/",
+              "the-longevity-library/",
+              "contact/",
+              "ip-usage-policy/",
+          ]
+
+          def get(url):
+              req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+              last = None
+              for _ in range(3):
+                  try:
+                      with urlopen(req, timeout=45) as r:
+                          return r.read()
+                  except Exception as e:
+                      last = e
+                      time.sleep(2)
+              raise last
+
+          def save(url, rel):
+              p = ROOT / rel
+              p.parent.mkdir(parents=True, exist_ok=True)
+              p.write_bytes(get(url))
+              print(url, "->", rel)
+
+          for route in routes:
+              rel = "index.html" if not route else route + "index.html"
+              save(ORIGIN + "/" + route, rel)
+
+          seed = [
+              "/manifest.json",
+              "/assets/css/main.297c4bd9b5d865065d9d.css",
+              "/assets/js/main.a583e79ccc364c90284f.js",
+          ]
+          for path in seed:
+              try:
+                  save(ORIGIN + path, path.lstrip("/"))
+              except Exception as e:
+                  print("optional seed failed", path, e)
+
+          absolute_re = re.compile(r'https://(?:jasminadenner\.com/(?:assets|icons)/|jd-cms\.onrender\.com/uploads/)[^"\'<> )]+')
+          root_re = re.compile(r'(?:"|\')(/(?:assets|icons)/[^"\'<> )]+|/manifest\.json)(?:"|\')')
+
+          def local_for(url):
+              u = urlsplit(url)
+              if u.netloc == "jasminadenner.com":
+                  return u.path.lstrip("/")
+              if u.netloc == "jd-cms.onrender.com":
+                  return "__external__/jd-cms.onrender.com" + u.path
+              return None
+
+          seen = set()
+          for _round in range(5):
+              found = set()
+              for p in ROOT.rglob("*"):
+                  if not p.is_file() or p.suffix.lower() not in {".html", ".css", ".js", ".json"}:
+                      continue
+                  try:
+                      text = p.read_text("utf-8")
+                  except Exception:
+                      continue
+                  found.update(absolute_re.findall(text))
+                  for path in root_re.findall(text):
+                      found.add(ORIGIN + path)
+
+              pending = [u for u in sorted(found) if u not in seen]
+              if not pending:
+                  break
+              for url in pending:
+                  seen.add(url)
+                  rel = local_for(url)
+                  if not rel:
+                      continue
+                  target = ROOT / rel
+                  if target.exists():
+                      continue
+                  try:
+                      save(url, rel)
+                  except Exception as e:
+                      print("asset failed", url, e)
+
+          replacements = {
+              "https://jasminadenner.com/assets/": "/assets/",
+              "https://jasminadenner.com/icons/": "/icons/",
+              "https://jasminadenner.com/manifest.json": "/manifest.json",
+              "https://jd-cms.onrender.com/uploads/": "/__external__/jd-cms.onrender.com/uploads/",
           }
-          fetch "https://jd-cms.onrender.com/uploads/small_3_e83234be47.png" "__external__/jd-cms.onrender.com/uploads/small_3_e83234be47.png"
-          fetch "https://jd-cms.onrender.com/uploads/small_1_73a6ec1049.png" "__external__/jd-cms.onrender.com/uploads/small_1_73a6ec1049.png"
-          fetch "https://jd-cms.onrender.com/uploads/small_2_20c22f0c1e.png" "__external__/jd-cms.onrender.com/uploads/small_2_20c22f0c1e.png"
-          fetch "https://jd-cms.onrender.com/uploads/small_4_b8ffb083f1.png" "__external__/jd-cms.onrender.com/uploads/small_4_b8ffb083f1.png"
-          fetch "https://jd-cms.onrender.com/uploads/large_4_b8ffb083f1.png" "__external__/jd-cms.onrender.com/uploads/large_4_b8ffb083f1.png"
-          fetch "https://jd-cms.onrender.com/uploads/large_3_e83234be47.png" "__external__/jd-cms.onrender.com/uploads/large_3_e83234be47.png"
-          fetch "https://jasminadenner.com/assets/images/image01-2.png" "assets/images/image01-2.png"
-          fetch "https://jd-cms.onrender.com/uploads/small_5_361930f3e4.png" "__external__/jd-cms.onrender.com/uploads/small_5_361930f3e4.png"
-          fetch "https://jd-cms.onrender.com/uploads/large_2_20c22f0c1e.png" "__external__/jd-cms.onrender.com/uploads/large_2_20c22f0c1e.png"
-          fetch "https://jd-cms.onrender.com/uploads/medium_image05_490dadf5bf.jpg" "__external__/jd-cms.onrender.com/uploads/medium_image05_490dadf5bf.jpg"
-          fetch "https://jd-cms.onrender.com/uploads/small_image05_490dadf5bf.jpg" "__external__/jd-cms.onrender.com/uploads/small_image05_490dadf5bf.jpg"
-          fetch "https://jasminadenner.com/assets/images/image01.png" "assets/images/image01.png"
-          fetch "https://jd-cms.onrender.com/uploads/large_Book_hp_white_f7afd84012.png" "__external__/jd-cms.onrender.com/uploads/large_Book_hp_white_f7afd84012.png"
-          fetch "https://jd-cms.onrender.com/uploads/medium_3_e83234be47.png" "__external__/jd-cms.onrender.com/uploads/medium_3_e83234be47.png"
-          fetch "https://jd-cms.onrender.com/uploads/small_Book_hp_white_f7afd84012.png" "__external__/jd-cms.onrender.com/uploads/small_Book_hp_white_f7afd84012.png"
-          fetch "https://jd-cms.onrender.com/uploads/medium_4_b8ffb083f1.png" "__external__/jd-cms.onrender.com/uploads/medium_4_b8ffb083f1.png"
-          fetch "https://jd-cms.onrender.com/uploads/medium_2_20c22f0c1e.png" "__external__/jd-cms.onrender.com/uploads/medium_2_20c22f0c1e.png"
-          fetch "https://jd-cms.onrender.com/uploads/large_1_73a6ec1049.png" "__external__/jd-cms.onrender.com/uploads/large_1_73a6ec1049.png"
-          fetch "https://jd-cms.onrender.com/uploads/medium_1_73a6ec1049.png" "__external__/jd-cms.onrender.com/uploads/medium_1_73a6ec1049.png"
-          fetch "https://jd-cms.onrender.com/uploads/medium_Book_hp_white_f7afd84012.png" "__external__/jd-cms.onrender.com/uploads/medium_Book_hp_white_f7afd84012.png"
-          fetch "https://jasminadenner.com/assets/images/13cf611da58a009b03d2.png" "assets/images/13cf611da58a009b03d2.png"
-          fetch "https://jd-cms.onrender.com/uploads/medium_5_361930f3e4.png" "__external__/jd-cms.onrender.com/uploads/medium_5_361930f3e4.png"
-          fetch "https://jasminadenner.com/manifest.json" "manifest.json"
-          fetch "https://jasminadenner.com/assets/css/main.297c4bd9b5d865065d9d.css" "assets/css/main.297c4bd9b5d865065d9d.css"
-          fetch "https://jasminadenner.com/assets/images/book.png" "assets/images/book.png"
-          fetch "https://jasminadenner.com/icons/favicon-196.png" "icons/favicon-196.png"
-          fetch "https://jasminadenner.com/assets/fonts/e4e92733bfc1c2aa75.woff2" "assets/fonts/e4e92733bfc1c2aa75.woff2" || true
-          fetch "https://jasminadenner.com/assets/fonts/e4e92733bfc1a391e5c7.woff2" "assets/fonts/e4e92733bfc1a391e5c7.woff2"
-          fetch "https://jasminadenner.com/icons/apple-icon-180.png" "icons/apple-icon-180.png"
-          fetch "https://jasminadenner.com/assets/fonts/0eff6bba3376806ce6e3.woff2" "assets/fonts/0eff6bba3376806ce6e3.woff2"
-          fetch "https://jasminadenner.com/assets/js/main.a583e79ccc364c90284f.js" "assets/js/main.a583e79ccc364c90284f.js"
-          fetch "https://jasminadenner.com/assets/fonts/db95a98e2b04a0c5f787.woff2" "assets/fonts/db95a98e2b04a0c5f787.woff2"
-          fetch "https://jd-cms.onrender.com/uploads/large_5_361930f3e4.png" "__external__/jd-cms.onrender.com/uploads/large_5_361930f3e4.png"
-          fetch "https://jasminadenner.com/assets/fonts/fd710497da6f571fc11f.woff2" "assets/fonts/fd710497da6f571fc11f.woff2"
-          fetch "https://jasminadenner.com/assets/fonts/64a0dc6afe9fc2c2aa75.woff2" "assets/fonts/64a0dc6afe9fc2c2aa75.woff2"
-          fetch "https://jasminadenner.com/icons/manifest-icon-192.maskable.png" "icons/manifest-icon-192.maskable.png"
-          fetch "https://jasminadenner.com/assets/fonts/77e4591e6c6bb90817d5.woff2" "assets/fonts/77e4591e6c6bb90817d5.woff2"
-          fetch "https://jasminadenner.com/assets/fonts/960e890cb970d849a8fc.woff2" "assets/fonts/960e890cb970d849a8fc.woff2"
-          fetch "https://jasminadenner.com/assets/fonts/e76c1e332ec883024699.woff2" "assets/fonts/e76c1e332ec883024699.woff2"
-          fetch "https://jd-cms.onrender.com/uploads/social_83c2d26f6a.jpg" "__external__/jd-cms.onrender.com/uploads/social_83c2d26f6a.jpg"
-      - name: Commit assets
+          for p in ROOT.rglob("*"):
+              if not p.is_file() or p.suffix.lower() not in {".html", ".css", ".js", ".json"}:
+                  continue
+              try:
+                  text = p.read_text("utf-8")
+              except Exception:
+                  continue
+              new = text
+              for old, repl in replacements.items():
+                  new = new.replace(old, repl)
+              if new != text:
+                  p.write_text(new, "utf-8")
+
+          # The contact form has no local backend in a static mirror.
+          # Submit to the original endpoint so its behavior remains functional.
+          for p in ROOT.rglob("*.html"):
+              text = p.read_text("utf-8")
+              text = text.replace(
+                  '<form data-component="form" method="post" name="Footer Contact Form">',
+                  '<form data-component="form" method="post" action="https://jasminadenner.com/" name="Footer Contact Form">'
+              )
+              p.write_text(text, "utf-8")
+          PY
+
+      - name: Commit mirrored site
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets __external__ icons manifest.json
+          git add -A
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "Add Denner site assets"
+          git commit -m "Mirror Jasmina Denner site"
           git push
