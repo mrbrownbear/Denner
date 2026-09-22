@@ -1,0 +1,76 @@
+name: Bootstrap Denner assets
+
+on:
+  push:
+    paths:
+      - ".github/workflows/bootstrap-assets.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download original captured assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          fetch() {
+            url="$1"
+            out="$2"
+            mkdir -p "$(dirname "$out")"
+            curl -fL --retry 3 --connect-timeout 20 "$url" -o "$out"
+          }
+          fetch "https://jd-cms.onrender.com/uploads/small_3_e83234be47.png" "__external__/jd-cms.onrender.com/uploads/small_3_e83234be47.png"
+          fetch "https://jd-cms.onrender.com/uploads/small_1_73a6ec1049.png" "__external__/jd-cms.onrender.com/uploads/small_1_73a6ec1049.png"
+          fetch "https://jd-cms.onrender.com/uploads/small_2_20c22f0c1e.png" "__external__/jd-cms.onrender.com/uploads/small_2_20c22f0c1e.png"
+          fetch "https://jd-cms.onrender.com/uploads/small_4_b8ffb083f1.png" "__external__/jd-cms.onrender.com/uploads/small_4_b8ffb083f1.png"
+          fetch "https://jd-cms.onrender.com/uploads/large_4_b8ffb083f1.png" "__external__/jd-cms.onrender.com/uploads/large_4_b8ffb083f1.png"
+          fetch "https://jd-cms.onrender.com/uploads/large_3_e83234be47.png" "__external__/jd-cms.onrender.com/uploads/large_3_e83234be47.png"
+          fetch "https://jasminadenner.com/assets/images/image01-2.png" "assets/images/image01-2.png"
+          fetch "https://jd-cms.onrender.com/uploads/small_5_361930f3e4.png" "__external__/jd-cms.onrender.com/uploads/small_5_361930f3e4.png"
+          fetch "https://jd-cms.onrender.com/uploads/large_2_20c22f0c1e.png" "__external__/jd-cms.onrender.com/uploads/large_2_20c22f0c1e.png"
+          fetch "https://jd-cms.onrender.com/uploads/medium_image05_490dadf5bf.jpg" "__external__/jd-cms.onrender.com/uploads/medium_image05_490dadf5bf.jpg"
+          fetch "https://jd-cms.onrender.com/uploads/small_image05_490dadf5bf.jpg" "__external__/jd-cms.onrender.com/uploads/small_image05_490dadf5bf.jpg"
+          fetch "https://jasminadenner.com/assets/images/image01.png" "assets/images/image01.png"
+          fetch "https://jd-cms.onrender.com/uploads/large_Book_hp_white_f7afd84012.png" "__external__/jd-cms.onrender.com/uploads/large_Book_hp_white_f7afd84012.png"
+          fetch "https://jd-cms.onrender.com/uploads/medium_3_e83234be47.png" "__external__/jd-cms.onrender.com/uploads/medium_3_e83234be47.png"
+          fetch "https://jd-cms.onrender.com/uploads/small_Book_hp_white_f7afd84012.png" "__external__/jd-cms.onrender.com/uploads/small_Book_hp_white_f7afd84012.png"
+          fetch "https://jd-cms.onrender.com/uploads/medium_4_b8ffb083f1.png" "__external__/jd-cms.onrender.com/uploads/medium_4_b8ffb083f1.png"
+          fetch "https://jd-cms.onrender.com/uploads/medium_2_20c22f0c1e.png" "__external__/jd-cms.onrender.com/uploads/medium_2_20c22f0c1e.png"
+          fetch "https://jd-cms.onrender.com/uploads/large_1_73a6ec1049.png" "__external__/jd-cms.onrender.com/uploads/large_1_73a6ec1049.png"
+          fetch "https://jd-cms.onrender.com/uploads/medium_1_73a6ec1049.png" "__external__/jd-cms.onrender.com/uploads/medium_1_73a6ec1049.png"
+          fetch "https://jd-cms.onrender.com/uploads/medium_Book_hp_white_f7afd84012.png" "__external__/jd-cms.onrender.com/uploads/medium_Book_hp_white_f7afd84012.png"
+          fetch "https://jasminadenner.com/assets/images/13cf611da58a009b03d2.png" "assets/images/13cf611da58a009b03d2.png"
+          fetch "https://jd-cms.onrender.com/uploads/medium_5_361930f3e4.png" "__external__/jd-cms.onrender.com/uploads/medium_5_361930f3e4.png"
+          fetch "https://jasminadenner.com/manifest.json" "manifest.json"
+          fetch "https://jasminadenner.com/assets/css/main.297c4bd9b5d865065d9d.css" "assets/css/main.297c4bd9b5d865065d9d.css"
+          fetch "https://jasminadenner.com/assets/images/book.png" "assets/images/book.png"
+          fetch "https://jasminadenner.com/icons/favicon-196.png" "icons/favicon-196.png"
+          fetch "https://jasminadenner.com/assets/fonts/e4e92733bfc1c2aa75.woff2" "assets/fonts/e4e92733bfc1c2aa75.woff2" || true
+          fetch "https://jasminadenner.com/assets/fonts/e4e92733bfc1a391e5c7.woff2" "assets/fonts/e4e92733bfc1a391e5c7.woff2"
+          fetch "https://jasminadenner.com/icons/apple-icon-180.png" "icons/apple-icon-180.png"
+          fetch "https://jasminadenner.com/assets/fonts/0eff6bba3376806ce6e3.woff2" "assets/fonts/0eff6bba3376806ce6e3.woff2"
+          fetch "https://jasminadenner.com/assets/js/main.a583e79ccc364c90284f.js" "assets/js/main.a583e79ccc364c90284f.js"
+          fetch "https://jasminadenner.com/assets/fonts/db95a98e2b04a0c5f787.woff2" "assets/fonts/db95a98e2b04a0c5f787.woff2"
+          fetch "https://jd-cms.onrender.com/uploads/large_5_361930f3e4.png" "__external__/jd-cms.onrender.com/uploads/large_5_361930f3e4.png"
+          fetch "https://jasminadenner.com/assets/fonts/fd710497da6f571fc11f.woff2" "assets/fonts/fd710497da6f571fc11f.woff2"
+          fetch "https://jasminadenner.com/assets/fonts/64a0dc6afe9fc2c2aa75.woff2" "assets/fonts/64a0dc6afe9fc2c2aa75.woff2"
+          fetch "https://jasminadenner.com/icons/manifest-icon-192.maskable.png" "icons/manifest-icon-192.maskable.png"
+          fetch "https://jasminadenner.com/assets/fonts/77e4591e6c6bb90817d5.woff2" "assets/fonts/77e4591e6c6bb90817d5.woff2"
+          fetch "https://jasminadenner.com/assets/fonts/960e890cb970d849a8fc.woff2" "assets/fonts/960e890cb970d849a8fc.woff2"
+          fetch "https://jasminadenner.com/assets/fonts/e76c1e332ec883024699.woff2" "assets/fonts/e76c1e332ec883024699.woff2"
+          fetch "https://jd-cms.onrender.com/uploads/social_83c2d26f6a.jpg" "__external__/jd-cms.onrender.com/uploads/social_83c2d26f6a.jpg"
+      - name: Commit assets
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets __external__ icons manifest.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Add Denner site assets"
+          git push
